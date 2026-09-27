@@ -1,49 +1,68 @@
-<html>
-<head> 
-
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dr. Daniel Korchinski</title>
 <style>
-html {
-  max-width: 70ch;
-  padding: 1em 1em;
-  margin: auto;
-  line-height: 1.2;
-  font-size: 1.25em;
+:root { color-scheme: light; font: 1.25em/1.35 Georgia, "Times New Roman", serif; }
+* { box-sizing: border-box; }
+html { min-height: 100%; background: #15202b; }
+body { min-height: 100vh; margin: 0; padding: clamp(.75rem, 3vw, 2.5rem); isolation: isolate; }
+#julia-background { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(circle, #52758b, #17222c); }
+.center_content { width: min(70ch, 100%); margin: auto; padding: .55rem clamp(1rem, 4vw, 2.25rem) clamp(1rem, 4vw, 2.25rem); color: #18212a; background: rgba(255,255,255,.84); border: 1px solid rgba(255,255,255,.75); border-radius: .75rem; box-shadow: 0 .5rem 2.5rem rgba(4,12,18,.3); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.panel_toggle { display: grid; width: 2rem; height: 2rem; margin: 0 0 .25rem -.45rem; place-items: center; border-radius: .4rem; cursor: pointer; color: #064f78; list-style: none; }
+.panel_toggle::-webkit-details-marker { display: none; }
+.panel_toggle::before { content: "⌃"; font: 700 1.35rem/1 system-ui, sans-serif; transition: transform 220ms ease; }
+.panel_toggle:hover { background: rgba(6,79,120,.1); }
+.panel_toggle:focus-visible { outline: 2px solid #064f78; outline-offset: 2px; }
+.center_content:not([open]) { width: 3.2rem; margin-left: 0; padding: .55rem; background: rgba(255,255,255,.78); }
+.center_content:not([open]) .panel_toggle { margin: 0; }
+.center_content:not([open]) .panel_toggle::before { transform: rotate(180deg); }
+.panel_body { overflow: hidden; }
+.center_content::details-content { block-size: auto; opacity: 1; overflow: hidden; transition: block-size 300ms ease, opacity 220ms ease, content-visibility 300ms allow-discrete; }
+.center_content:not([open])::details-content { block-size: 0; opacity: 0; }
+@starting-style { .center_content[open]::details-content { block-size: 0; opacity: 0; } }
+.profile { width: 100%; border-spacing: .5rem; }
+.profile td { text-align: center; }
+.profile img { display: block; width: auto; max-width: 100%; height: auto; max-height: min(400px, 55vh); aspect-ratio: 1578 / 1999; object-fit: contain; margin: auto; }
+h1 { margin-top: 0; line-height: 1.1; }
+a { color: #064f78; }
+@media (max-width: 700px) {
+  .profile, .profile tbody, .profile tr, .profile td { display: block; }
+  .profile td + td { margin-top: 1.25rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel_toggle::before, .center_content::details-content { transition: none; }
 }
 </style>
+<script src="julia-background.js" defer></script>
 </head>
 <body>
-
-<div class="center_content">
-<table style="height: 200px;" border="0" cellpadding="8px" >
-    <tr>
-        <td style="text-align: center;">
-            <img src="imgs/photo_crop_small.jpg" height="400px" alt="A photo of me in front of the Stawamus Chief mountain, taken from Slhany  ridge"></img>
-        </td>
-        <td style="text-align: center;">
-            <h1> Dr. Daniel Korchinski</h1>
-            <br />
-            <b> office: </b> 
-            BSP 528 (Cubotron UNIL)<br />
-            Rte de la Sorge, 
-             Lausanne, Switzerland<br />
-            <b >email: </b> daniel.korchinski(at)epfl(dot)ch <br />
-            <a href = "https://scholar.google.com/citations?user=VVKImwMAAAAJ">Google Scholar</a>, <a href="https://twitter.com/DanKorchinski">Twitter</a>, <a href = "https://github.com/DJKorchinski/">GitHub</a>, <a href = "data/korchinski_CV.pdf">Curriculum Vitae</a>
-        </td>
-    </tr>
-</table>
-<br /> 
+<canvas id="julia-background" aria-hidden="true"></canvas>
+<details class="center_content" open>
+<summary class="panel_toggle" aria-label="Show or hide profile and research information" title="Show or hide information"></summary>
+<main class="panel_body">
+<table class="profile"><tr>
+  <td><img src="imgs/photo_crop_small.jpg" alt="A photo of me in front of the Stawamus Chief mountain, taken from Slhany ridge"></td>
+  <td>
+    <h1>Dr. Daniel Korchinski</h1>
+    <b>office:</b> BSP 528 (Cubotron UNIL)<br>
+    Rte de la Sorge, Lausanne, Switzerland<br>
+    <b>email:</b> daniel.korchinski(at)epfl(dot)ch<br>
+    <a href="https://scholar.google.com/citations?user=VVKImwMAAAAJ">Google Scholar</a>, <a href="https://twitter.com/DanKorchinski">Twitter</a>, <a href="https://github.com/DJKorchinski/">GitHub</a>, <a href="data/korchinski_CV.pdf">Curriculum Vitae</a>
+  </td>
+</tr></table>
 <h2>Research</h2>
-<p> I am a physicist studying complex systems. 
-Many such systems self-organize into critical states, where dynamics are scale-free and correlated across the system. These scale-free fluctuations we recognize as avalanches or earthquakes.
-</p>In my MSc with Joern Davidsen, I studied neuronal avalanches and how they <a href= "https://doi.org/10.1103/PhysRevX.11.021059">might be altered</a> by sensory input or spontaneous activation (e.g. by spontaneous neurotransmitter release). 
-<p>For my PhD, I studied the avalanches of shear transformations that occur as amorphous solids are deformed.  
-As with my MSc, I like to understand to what extent the "clean" phase transition exists: are <a href = "https://doi.org/10.1103/PhysRevE.104.034603">finite-size effects</a> ruling the system? What about <a href="https://doi.org/10.48550/arXiv.2204.07545">temperature effects</a>? And what happens when temperature competes <a href="https://doi.org/10.1039/D4SM00619D">strongly with driving rate</a>?
-</p>
-<p> Currently, I am working with the group of Matthieu Wyart to develop a physics of deep learning. </p>
+<p>I am a physicist studying complex systems. Many such systems self-organize into critical states, where dynamics are scale-free and correlated across the system. These scale-free fluctuations we recognize as avalanches or earthquakes.</p>
+<p>In my MSc with Joern Davidsen, I studied neuronal avalanches and how they <a href="https://doi.org/10.1103/PhysRevX.11.021059">might be altered</a> by sensory input or spontaneous activation (e.g. by spontaneous neurotransmitter release).</p>
+<p>For my PhD, I studied the avalanches of shear transformations that occur as amorphous solids are deformed. As with my MSc, I like to understand to what extent the "clean" phase transition exists: are <a href="https://doi.org/10.1103/PhysRevE.104.034603">finite-size effects</a> ruling the system? What about <a href="https://doi.org/10.48550/arXiv.2204.07545">temperature effects</a>? And what happens when temperature competes <a href="https://doi.org/10.1039/D4SM00619D">strongly with driving rate</a>?</p>
+<p>Currently, I am working with the group of Matthieu Wyart to develop a physics of deep learning.</p>
 <h2>Misc</h2>
-<a href="https://djkorchinski.github.io/Abelian-Sandpile-Web-Demo/">Abelian Sandpile Visualization</a> <br />
-<a href="https://djkorchinski.github.io/newton-fractal-vis/">Newton Fractal Visualization</a> <br />
-<a href="https://djkorchinski.github.io/double-pend-fractal/">Double Pendulum Fractal Visualization</a> <br />
-</div>
+<a href="https://djkorchinski.github.io/Abelian-Sandpile-Web-Demo/">Abelian Sandpile Visualization</a><br>
+<a href="https://djkorchinski.github.io/newton-fractal-vis/">Newton Fractal Visualization</a><br>
+<a href="https://djkorchinski.github.io/double-pend-fractal/">Double Pendulum Fractal Visualization</a><br>
+</main>
+</details>
 </body>
 </html>
