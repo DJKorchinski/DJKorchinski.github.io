@@ -4,19 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dr. Daniel Korchinski</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
 :root { color-scheme: light; font: 1.25em/1.35 Georgia, "Times New Roman", serif; }
 * { box-sizing: border-box; }
 html { min-height: 100%; background: #15202b; }
 body { min-height: 100vh; margin: 0; padding: clamp(.75rem, 3vw, 2.5rem); isolation: isolate; }
 #julia-background { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(circle, #52758b, #17222c); }
-.center_content { width: min(70ch, 100%); margin: auto; padding: .55rem clamp(1rem, 4vw, 2.25rem) clamp(1rem, 4vw, 2.25rem); color: #18212a; background: rgba(255,255,255,.84); border: 1px solid rgba(255,255,255,.75); border-radius: .75rem; box-shadow: 0 .5rem 2.5rem rgba(4,12,18,.3); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.center_content { width: min(70ch, 100%); margin: auto; padding: .55rem clamp(1rem, 4vw, 2.25rem) clamp(1rem, 4vw, 2.25rem); color: #18212a; background: rgba(255,255,255,.64); border: 1px solid rgba(255,255,255,.75); border-radius: .75rem; box-shadow: 0 .5rem 2.5rem rgba(4,12,18,.3); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 .panel_toggle { display: grid; width: 2rem; height: 2rem; margin: 0 0 .25rem -.45rem; place-items: center; border-radius: .4rem; cursor: pointer; color: #064f78; list-style: none; }
 .panel_toggle::-webkit-details-marker { display: none; }
 .panel_toggle::before { content: "⌃"; font: 700 1.35rem/1 system-ui, sans-serif; transition: transform 220ms ease; }
 .panel_toggle:hover { background: rgba(6,79,120,.1); }
 .panel_toggle:focus-visible { outline: 2px solid #064f78; outline-offset: 2px; }
-.center_content:not([open]) { width: 3.2rem; margin-left: 0; padding: .55rem; background: rgba(255,255,255,.78); }
+.center_content:not([open]) { width: 3.2rem; margin-left: 0; padding: .55rem; background: rgba(255,255,255,.2); }
 .center_content:not([open]) .panel_toggle { margin: 0; }
 .center_content:not([open]) .panel_toggle::before { transform: rotate(180deg); }
 .panel_body { overflow: hidden; }
@@ -25,9 +26,14 @@ body { min-height: 100vh; margin: 0; padding: clamp(.75rem, 3vw, 2.5rem); isolat
 @starting-style { .center_content[open]::details-content { block-size: 0; opacity: 0; } }
 .profile { width: 100%; border-spacing: .5rem; }
 .profile td { text-align: center; }
-.profile img { display: block; width: auto; max-width: 100%; height: auto; max-height: min(400px, 55vh); aspect-ratio: 1578 / 1999; object-fit: contain; margin: auto; }
+.profile img { display: block; width: auto; max-width: 100%; height: auto; max-height: min(400px, 55vh); aspect-ratio: 1578 / 1999; object-fit: contain; margin: auto; border-radius: .45rem; box-shadow: 0 .3rem 1rem rgba(4,12,18,.22); }
 h1 { margin-top: 0; line-height: 1.1; }
 a { color: #064f78; }
+.contact_links { display: flex; justify-content: center; align-items: center; gap: .65rem; margin: .65rem 0 .8rem; }
+.contact_links a { display: grid; width: 2rem; height: 2rem; place-items: center; color: #3d4449; border-radius: .35rem; transition: color 160ms ease, background-color 160ms ease, transform 160ms ease; }
+.contact_links a:hover { color: #064f78; background: rgba(6,79,120,.1); transform: translateY(-1px); }
+.contact_links a:focus-visible { color: #064f78; outline: 2px solid currentColor; outline-offset: 2px; }
+.contact_links svg { width: 1.35rem; height: 1.35rem; fill: currentColor; }
 @media (max-width: 700px) {
   .profile, .profile tbody, .profile tr, .profile td { display: block; }
   .profile td + td { margin-top: 1.25rem; }
@@ -47,17 +53,34 @@ a { color: #064f78; }
   <td><img src="imgs/photo_crop_small.jpg" alt="A photo of me in front of the Stawamus Chief mountain, taken from Slhany ridge"></td>
   <td>
     <h1>Dr. Daniel Korchinski</h1>
+    <nav class="contact_links" aria-label="Contact and profile links">
+      <a href="mailto:daniel.korchinski@epfl.ch" aria-label="Email Daniel Korchinski">
+        <svg viewBox="0 0 24 24" role="img"><title>Email Daniel Korchinski</title><path d="M2 5.5A2.5 2.5 0 0 1 4.5 3h15A2.5 2.5 0 0 1 22 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5v-13Zm2.35-.5L12 11.12 19.65 5H4.35ZM20 7.08l-7.38 5.9a1 1 0 0 1-1.24 0L4 7.08V18.5c0 .28.22.5.5.5h15a.5.5 0 0 0 .5-.5V7.08Z"/></svg>
+      </a>
+      <a href="https://scholar.google.com/citations?user=VVKImwMAAAAJ" aria-label="Daniel Korchinski on Google Scholar">
+        <svg viewBox="0 0 24 24" role="img"><title>Daniel Korchinski on Google Scholar</title><path d="M12 2 1 8l4 2.18V16l7 4 7-4v-5.82L21 9.1V16h2V8L12 2Zm0 2.28L18.82 8 12 11.72 5.18 8 12 4.28ZM7 11.27l5 2.73 5-2.73v3.57l-5 2.86-5-2.86v-3.57Z"/></svg>
+      </a>
+      <a href="https://github.com/DJKorchinski/" aria-label="Daniel Korchinski on GitHub">
+        <svg viewBox="0 0 24 24" role="img"><title>Daniel Korchinski on GitHub</title><path d="M12 .7A11.5 11.5 0 0 0 8.36 23.1c.58.1.79-.25.79-.56v-2.23c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.72 1.27 3.38.97.1-.75.4-1.27.74-1.56-2.57-.29-5.27-1.28-5.27-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.16 1.18a10.9 10.9 0 0 1 5.75 0c2.2-1.49 3.16-1.18 3.16-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.7 5.38-5.28 5.67.42.36.79 1.07.79 2.16v3.25c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z"/></svg>
+      </a>
+      <a href="https://twitter.com/DanKorchinski" aria-label="Daniel Korchinski on Twitter">
+        <svg viewBox="0 0 24 24" role="img"><title>Daniel Korchinski on Twitter</title><path d="M21.54 6.02c.01.21.01.43.01.64 0 6.55-4.98 14.1-14.1 14.1-2.8 0-5.4-.82-7.59-2.22.39.05.78.06 1.18.06 2.32 0 4.46-.79 6.16-2.12a4.96 4.96 0 0 1-4.63-3.44c.3.05.61.08.93.08.45 0 .9-.06 1.32-.17A4.95 4.95 0 0 1 .85 8.1v-.06c.67.37 1.45.6 2.27.62A4.94 4.94 0 0 1 .92 4.54a14.08 14.08 0 0 0 10.2 5.17 5.58 5.58 0 0 1-.12-1.13 4.95 4.95 0 0 1 8.56-3.39 9.75 9.75 0 0 0 3.14-1.2 4.93 4.93 0 0 1-2.18 2.73 9.86 9.86 0 0 0 2.84-.77 10.58 10.58 0 0 1-2.47 2.56l.65-.49Z"/></svg>
+      </a>
+      <a href="data/korchinski_CV.pdf" aria-label="Daniel Korchinski’s curriculum vitae">
+        <svg viewBox="0 0 24 24" role="img"><title>Daniel Korchinski’s curriculum vitae</title><path d="M5 2h9.59L20 7.41V22H5V2Zm2 2v16h11V9h-5V4H7Zm8 .41V7h2.59L15 4.41ZM9 12h7v2H9v-2Zm0 4h7v2H9v-2Z"/></svg>
+      </a>
+    </nav>
     <b>office:</b> BSP 528 (Cubotron UNIL)<br>
     Rte de la Sorge, Lausanne, Switzerland<br>
-    <b>email:</b> daniel.korchinski(at)epfl(dot)ch<br>
-    <a href="https://scholar.google.com/citations?user=VVKImwMAAAAJ">Google Scholar</a>, <a href="https://twitter.com/DanKorchinski">Twitter</a>, <a href="https://github.com/DJKorchinski/">GitHub</a>, <a href="data/korchinski_CV.pdf">Curriculum Vitae</a>
   </td>
 </tr></table>
 <h2>Research</h2>
-<p>I am a physicist studying complex systems. Many such systems self-organize into critical states, where dynamics are scale-free and correlated across the system. These scale-free fluctuations we recognize as avalanches or earthquakes.</p>
-<p>In my MSc with Joern Davidsen, I studied neuronal avalanches and how they <a href="https://doi.org/10.1103/PhysRevX.11.021059">might be altered</a> by sensory input or spontaneous activation (e.g. by spontaneous neurotransmitter release).</p>
-<p>For my PhD, I studied the avalanches of shear transformations that occur as amorphous solids are deformed. As with my MSc, I like to understand to what extent the "clean" phase transition exists: are <a href="https://doi.org/10.1103/PhysRevE.104.034603">finite-size effects</a> ruling the system? What about <a href="https://doi.org/10.48550/arXiv.2204.07545">temperature effects</a>? And what happens when temperature competes <a href="https://doi.org/10.1039/D4SM00619D">strongly with driving rate</a>?</p>
-<p>Currently, I am working with the group of Matthieu Wyart to develop a physics of deep learning.</p>
+<p> I am a statistical physicist tackling questions in fundamental AI research. Currently, I am working with the <a href="https://www.epfl.ch/labs/pcsl/">group of Matthieu Wyart</a> to develop a physics of deep learning.</p>
+
+<p> My <a href="https://doi.org/10.1039/D4SM00619D"> PhD </a> and <a href="https://doi.org/10.1103/PhysRevX.11.021059"> MSc</a> had a unified theme of avalanches. Many complex systems self-organize into critical states, where dynamics are scale-free and correlated across the system. These "scale-free" fluctuations we recognize as avalanches or earthquakes have fractal dynamics (check out the Abelian Sandpile demo below!)</p>
+
+<p> My random walk through the research landscape also includes excursions through biomedical imaging and quantum key distribution. </p>
+
 <h2>Misc</h2>
 <a href="https://djkorchinski.github.io/Abelian-Sandpile-Web-Demo/">Abelian Sandpile Visualization</a><br>
 <a href="https://djkorchinski.github.io/newton-fractal-vis/">Newton Fractal Visualization</a><br>

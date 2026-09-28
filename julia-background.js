@@ -172,7 +172,7 @@
   function resize() {
     // The desktop version supersamples; for a decorative background, render a
     // smaller buffer and let the browser upscale it.
-    const scale = innerWidth < 700 ? 0.24 : 0.30;
+    const scale = innerWidth < 700 ? 0.24 : 0.52;
     const width = Math.max(1, Math.round(innerWidth * scale));
     const height = Math.max(1, Math.round(innerHeight * scale));
     if (canvas.width !== width || canvas.height !== height) {
