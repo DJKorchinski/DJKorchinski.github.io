@@ -1,5 +1,3 @@
 __TODO.txt: 
 
-- revise associated text
-- Update with more complete bibliography
 - update the cv? 
