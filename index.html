@@ -11,7 +11,21 @@
 html { min-height: 100%; background: #15202b; }
 body { min-height: 100vh; margin: 0; padding: clamp(.75rem, 3vw, 2.5rem); isolation: isolate; }
 #julia-background { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(circle, #52758b, #17222c); }
-.center_content { width: min(70ch, 100%); margin: auto; padding: .55rem clamp(1rem, 4vw, 2.25rem) clamp(1rem, 4vw, 2.25rem); color: #18212a; background: rgba(255,255,255,.64); border: 1px solid rgba(255,255,255,.75); border-radius: .75rem; box-shadow: 0 .5rem 2.5rem rgba(4,12,18,.3); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+#julia-background.interactive { pointer-events: auto; touch-action: none; cursor: grab; }
+#julia-background.interactive:active { cursor: grabbing; }
+.fractal_controls { position: fixed; bottom: 1rem; left: 1rem; width: min(37.1rem, calc(100% - 2rem)); max-width: calc(100% - 2rem); padding: .55rem; font: .7rem/1.5 system-ui, sans-serif; interpolate-size: allow-keywords; transition: width 300ms ease; }
+.center_content, .fractal_controls { color: #18212a; background: rgba(255,255,255,.64); border: 1px solid rgba(255,255,255,.75); border-radius: .75rem; box-shadow: 0 .5rem 2.5rem rgba(4,12,18,.3); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.fractal_controls button { margin-left: .5rem; padding: .5rem .7rem; cursor: pointer; }
+.fractal_controls[hidden] { display: none; }
+.fractal_controls > summary { display: grid; place-items: center; width: 2rem; height: 2rem; cursor: pointer; list-style: none; border-radius: .4rem; color: #064f78; }
+.fractal_controls > summary:hover { background: rgba(6,79,120,.1); }
+.fractal_controls > summary::-webkit-details-marker { display: none; }
+.fractal_controls > summary::before { content: "⌃"; font: 700 1.35rem/1 system-ui, sans-serif; transform: rotate(180deg); transition: transform 220ms ease; }
+.fractal_controls:not([open]) > summary::before { transform: none; }
+.fractal_controls > summary:focus-visible { outline: 2px solid #064f78; outline-offset: 2px; }
+.fractal_controls:not([open]) { width: calc(3.1rem + 2px); background: rgba(255,255,255,.2); }
+.fractal_controls .control_body { width: min(36rem - 2px, calc(100vw - 3.1rem - 2px)); padding: .25rem; }
+.center_content { width: min(70ch, 100%); margin: auto; padding: .55rem clamp(1rem, 4vw, 2.25rem) clamp(1rem, 4vw, 2.25rem); }
 .panel_toggle { display: grid; width: 2rem; height: 2rem; margin: 0 0 .25rem -.45rem; place-items: center; border-radius: .4rem; cursor: pointer; color: #064f78; list-style: none; }
 .panel_toggle::-webkit-details-marker { display: none; }
 .panel_toggle::before { content: "⌃"; font: 700 1.35rem/1 system-ui, sans-serif; transition: transform 220ms ease; }
@@ -21,9 +35,9 @@ body { min-height: 100vh; margin: 0; padding: clamp(.75rem, 3vw, 2.5rem); isolat
 .center_content:not([open]) .panel_toggle { margin: 0; }
 .center_content:not([open]) .panel_toggle::before { transform: rotate(180deg); }
 .panel_body { overflow: hidden; }
-.center_content::details-content { block-size: auto; opacity: 1; overflow: hidden; transition: block-size 300ms ease, opacity 220ms ease, content-visibility 300ms allow-discrete; }
-.center_content:not([open])::details-content { block-size: 0; opacity: 0; }
-@starting-style { .center_content[open]::details-content { block-size: 0; opacity: 0; } }
+.center_content::details-content, .fractal_controls::details-content { block-size: auto; opacity: 1; overflow: hidden; transition: block-size 300ms ease, opacity 220ms ease, content-visibility 300ms allow-discrete; }
+.center_content:not([open])::details-content, .fractal_controls:not([open])::details-content { block-size: 0; opacity: 0; }
+@starting-style { .center_content[open]::details-content, .fractal_controls[open]::details-content { block-size: 0; opacity: 0; } }
 .profile { width: 100%; border-spacing: .5rem; }
 .profile td { text-align: center; }
 .profile img { display: block; width: auto; max-width: 100%; height: auto; max-height: min(400px, 55vh); aspect-ratio: 1578 / 1999; object-fit: contain; margin: auto; border-radius: .45rem; box-shadow: 0 .3rem 1rem rgba(4,12,18,.22); }
@@ -39,7 +53,7 @@ a { color: #064f78; }
   .profile td + td { margin-top: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .panel_toggle::before, .center_content::details-content { transition: none; }
+  .panel_toggle::before, .fractal_controls, .fractal_controls > summary::before, .center_content::details-content, .fractal_controls::details-content { transition: none; }
 }
 </style>
 <script src="julia-background.js" defer></script>
@@ -47,7 +61,7 @@ a { color: #064f78; }
 <body>
 <canvas id="julia-background" aria-hidden="true"></canvas>
 <details class="center_content" open>
-<summary class="panel_toggle" aria-label="Show or hide profile and research information" title="Show or hide information"></summary>
+<summary id="main-panel-toggle" class="panel_toggle" aria-label="Show or hide profile and research information" title="Show or hide information"></summary>
 <main class="panel_body">
 <table class="profile"><tr>
   <td><img src="imgs/photo_crop_small.jpg" alt="A photo of me in front of the Stawamus Chief mountain, taken from Slhany ridge"></td>
@@ -86,6 +100,13 @@ a { color: #064f78; }
 <a href="https://djkorchinski.github.io/newton-fractal-vis/">Newton Fractal Visualization</a><br>
 <a href="https://djkorchinski.github.io/double-pend-fractal/">Double Pendulum Fractal Visualization</a><br>
 </main>
+</details>
+<details class="fractal_controls" hidden open aria-label="Fractal controls">
+  <summary id="fractal-instructions-toggle" aria-label="Show or hide fractal instructions" title="Show or hide instructions"></summary>
+  <div class="control_body">
+  <span id="fractal-instructions">Drag to explore the fractal. Use Resume tour to restart the animation.</span>
+  <button type="button" id="fractal-resume">Resume tour</button>
+  </div>
 </details>
 </body>
 </html>

@@ -168,6 +168,51 @@
   let frameRequest = 0;
   let resizeTimer = 0;
   let lastFrame = -Infinity;
+  const panel = document.querySelector(".center_content");
+  const controls = document.querySelector(".fractal_controls");
+  const resumeButton = document.getElementById("fractal-resume");
+  const instructions = document.getElementById("fractal-instructions");
+  const panelToggle = document.getElementById("main-panel-toggle");
+  const instructionsToggle = document.getElementById("fractal-instructions-toggle");
+  const coarsePointer = matchMedia("(pointer: coarse)");
+  const isMac = /Mac/.test(navigator.platform || navigator.userAgent);
+  let touchInput = coarsePointer.matches;
+  let nativeGestures = false;
+  let nativeGesture = null;
+
+  function updateInstructions() {
+    const navigation = touchInput
+      ? "Drag to pan · Two-finger drag to shift in 4D · Pinch to zoom · Twist to rotate"
+      : isMac
+        ? "Drag to pan · Secondary-click drag to shift in 4D · Scroll / pinch to zoom · Q/E to rotate"
+        : "Drag to pan · Right-drag to shift in 4D · Scroll to zoom · Q/E to rotate";
+    instructions.textContent = navigation
+      + (!touchInput && nativeGestures ? " · Twist to rotate" : "")
+      + (touchInput ? " · Resume tour below" : " · Space to pause/resume · Enter to show/hide instructions · Esc to show/hide main content");
+    for (const [toggle, label, shortcut] of [
+      [panelToggle, "Show or hide profile and research information", "Escape"],
+      [instructionsToggle, "Show or hide fractal instructions", "Enter"]
+    ]) {
+      const description = label + (touchInput ? "" : ` (${shortcut === "Escape" ? "Esc" : shortcut})`);
+      toggle.setAttribute("aria-label", description);
+      toggle.title = description;
+      if (touchInput) toggle.removeAttribute("aria-keyshortcuts");
+      else toggle.setAttribute("aria-keyshortcuts", shortcut);
+    }
+  }
+  updateInstructions();
+  coarsePointer.addEventListener?.("change", () => {
+    touchInput = coarsePointer.matches;
+    updateInstructions();
+  });
+  let camera = cameraAt(0);
+  let tourTime = 0;
+  let automatic = !reducedMotion.matches;
+  let returning = null;
+  let previousTime = null;
+  const pointers = new Map();
+  const keys = new Set();
+  const interactive = () => !panel.open;
 
   function resize() {
     // The desktop version supersamples; for a decorative background, render a
@@ -225,35 +270,216 @@
     ]);
   }
 
-  function render(milliseconds) {
+  function render() {
     resize();
-    const seconds = reducedMotion.matches ? 0 : milliseconds * 0.001;
-    gl.uniformMatrix4fv(viewLocation, false, buildView(cameraAt(seconds)));
+    gl.uniformMatrix4fv(viewLocation, false, buildView(camera));
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
   function animate(milliseconds) {
+    frameRequest = 0;
+    const dt = previousTime === null ? 0 : Math.min((milliseconds - previousTime) / 1000, .1);
+    previousTime = milliseconds;
+    if (automatic) {
+      tourTime += dt;
+      const target = cameraAt(tourTime);
+      if (returning) {
+        returning.elapsed += dt;
+        const t = Math.min(1, returning.elapsed / 3);
+        // Quintic spline has zero first and second derivatives at either end.
+        const blend = t*t*t*(10 + t*(-15 + 6*t));
+        camera = Float64Array.from(target, (value, i) => returning.from[i]*(1-blend) + value*blend);
+        if (t === 1) returning = null;
+      } else camera = target;
+    }
+    if (interactive()) camera[4] += ((keys.has("e") ? 1 : 0) - (keys.has("q") ? 1 : 0)) * dt / Math.PI;
     if (milliseconds - lastFrame >= 83) { // About 12 fps is ample behind text.
-      render(milliseconds);
+      render();
       lastFrame = milliseconds;
     }
-    frameRequest = requestAnimationFrame(animate);
+    if (automatic || keys.size) frameRequest = requestAnimationFrame(animate);
+    else previousTime = null;
   }
 
   function start() {
-    cancelAnimationFrame(frameRequest);
-    if (reducedMotion.matches) render(0);
-    else if (!document.hidden) frameRequest = requestAnimationFrame(animate);
+    if (document.hidden || (!automatic && !keys.size)) {
+      cancelAnimationFrame(frameRequest);
+      frameRequest = 0;
+      previousTime = null;
+    }
+    if (document.hidden) return;
+    render();
+    // Input can redraw immediately without resetting a held key's clock.
+    if ((automatic || keys.size) && !frameRequest) frameRequest = requestAnimationFrame(animate);
   }
+
+  function pause() {
+    automatic = false;
+    returning = null;
+    resumeButton.disabled = false;
+  }
+
+  function resume() {
+    if (automatic) return;
+    pointers.clear();
+    keys.clear();
+    returning = { from: camera.slice(), elapsed: 0 };
+    // Choose the nearest equivalent orientation, avoiding needless full turns.
+    const target = cameraAt(tourTime);
+    for (const i of [4, 5]) returning.from[i] = target[i] + Math.atan2(Math.sin(camera[i]-target[i]), Math.cos(camera[i]-target[i]));
+    automatic = true;
+    resumeButton.disabled = true;
+    start();
+  }
+
+  function translate(dx, dy, perpendicular = false) {
+    const view = buildView(camera);
+    const x = -2 * dx / innerWidth;
+    const y = 2 * dy / innerHeight;
+    const shift = Array.from({ length: 4 }, (_, i) => view[i]*x + view[i+4]*y);
+    for (let i = 0; i < 4; i++) camera[i] += perpendicular ? .3 * shift[(i+2)%4] : shift[i];
+  }
+
+  function zoom(factor) {
+    camera[6] = Math.max(.00001, Math.min(8, Math.abs(camera[6]) * factor));
+  }
+
+  function gesture() {
+    const [a, b] = [...pointers.values()];
+    if (!b) return { x: a.x, y: a.y };
+    return { x: (a.x+b.x)/2, y: (a.y+b.y)/2,
+      distance: Math.hypot(b.x-a.x, b.y-a.y), angle: Math.atan2(b.y-a.y, b.x-a.x) };
+  }
+
+  canvas.addEventListener("pointerdown", event => {
+    if (!interactive() || (event.button !== 0 && event.button !== 2)) return;
+    event.preventDefault();
+    touchInput = event.pointerType === "touch";
+    updateInstructions();
+    pause();
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY, right: event.button === 2 });
+    canvas.setPointerCapture(event.pointerId);
+    start();
+  });
+  canvas.addEventListener("pointermove", event => {
+    if (!interactive() || !pointers.has(event.pointerId)) return;
+    if (nativeGesture) return; // Avoid applying a touch gesture twice.
+    const before = gesture();
+    const point = pointers.get(event.pointerId);
+    const right = point.right;
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const after = gesture();
+    translate(after.x-before.x, after.y-before.y, pointers.size > 1 || right);
+    if (before.distance && after.distance) {
+      zoom(before.distance / after.distance);
+      camera[4] += Math.atan2(Math.sin(after.angle-before.angle), Math.cos(after.angle-before.angle));
+    }
+    render();
+  });
+  for (const name of ["pointerup", "pointercancel", "lostpointercapture"]) {
+    canvas.addEventListener(name, event => pointers.delete(event.pointerId));
+  }
+  canvas.addEventListener("contextmenu", event => { if (interactive()) event.preventDefault(); });
+  // Safari exposes trackpad rotation through gesture events. Other browsers
+  // retain Q/E; wheel events alone cannot reliably identify a trackpad twist.
+  canvas.addEventListener("gesturestart", event => {
+    if (!interactive()) return;
+    event.preventDefault();
+    pause();
+    nativeGestures = true;
+    nativeGesture = { scale: event.scale, rotation: event.rotation };
+    updateInstructions();
+    start();
+  }, { passive: false });
+  canvas.addEventListener("gesturechange", event => {
+    if (!interactive() || !nativeGesture) return;
+    event.preventDefault();
+    if (event.scale > 0 && nativeGesture.scale > 0) zoom(nativeGesture.scale / event.scale);
+    camera[4] += (event.rotation - nativeGesture.rotation) * Math.PI / 180;
+    nativeGesture = { scale: event.scale, rotation: event.rotation };
+    render();
+  }, { passive: false });
+  canvas.addEventListener("gestureend", event => {
+    if (nativeGesture) event.preventDefault();
+    nativeGesture = null;
+    pointers.clear();
+  }, { passive: false });
+  canvas.addEventListener("wheel", event => {
+    if (!interactive()) return;
+    event.preventDefault();
+    if (nativeGesture) return;
+    pause();
+    const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
+    zoom(Math.exp(Math.max(-1, Math.min(1, delta * .001))));
+    start();
+  }, { passive: false });
+  document.addEventListener("keydown", event => {
+    if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest("input, textarea, select, [contenteditable]")) return;
+    // Handle these before the browser activates a focused <summary>.
+    if (event.key === "Escape") {
+      event.preventDefault();
+      if (!event.repeat) {
+        panel.open = !panel.open;
+        syncPanel();
+        panelToggle.focus({ preventScroll: true });
+      }
+      return;
+    }
+    if (event.key === "Enter" && (interactive() || event.target === panelToggle)) {
+      event.preventDefault();
+      if (!event.repeat && interactive()) {
+        controls.open = !controls.open;
+        instructionsToggle.focus({ preventScroll: true });
+      }
+      return;
+    }
+    if (!interactive()) return;
+    const key = event.key.toLowerCase();
+    if (event.code === "Space") {
+      if (event.target.closest("button, a")) return;
+      event.preventDefault();
+      if (!event.repeat) {
+        if (automatic) {
+          pause();
+          start();
+        } else resume();
+      }
+    } else if (key === "q" || key === "e") {
+      event.preventDefault();
+      if (keys.has(key)) return; // OS key repeats must not reset the frame clock.
+      pause();
+      keys.add(key);
+      start();
+    }
+  }, { capture: true });
+  document.addEventListener("keyup", event => {
+    if (keys.delete(event.key.toLowerCase())) start(); // Flush the final camera state, even between throttled frames.
+  });
+  function clearInput() { pointers.clear(); keys.clear(); nativeGesture = null; }
+  addEventListener("blur", clearInput);
+  function syncPanel() {
+    clearInput();
+    canvas.classList.toggle("interactive", interactive());
+    controls.hidden = !interactive();
+    resumeButton.disabled = automatic;
+  }
+  panel.addEventListener("toggle", syncPanel);
+  resumeButton.addEventListener("click", resume);
 
   addEventListener("resize", () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       resize();
-      if (reducedMotion.matches) render(0);
+      render();
     }, 120);
   }, { passive: true });
-  document.addEventListener("visibilitychange", start);
-  reducedMotion.addEventListener?.("change", start);
+  document.addEventListener("visibilitychange", () => { clearInput(); start(); });
+  reducedMotion.addEventListener?.("change", () => {
+    automatic = !reducedMotion.matches;
+    returning = null;
+    resumeButton.disabled = automatic;
+    start();
+  });
   start();
 })();
